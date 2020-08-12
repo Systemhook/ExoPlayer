@@ -17,6 +17,7 @@ package com.google.android.exoplayer2.source.dash;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.Format;
 import com.google.android.exoplayer2.drm.DrmInitData;
@@ -28,31 +29,31 @@ import com.google.android.exoplayer2.source.dash.manifest.SegmentBase.SingleSegm
 import com.google.android.exoplayer2.upstream.DummyDataSource;
 import com.google.android.exoplayer2.util.MimeTypes;
 import java.util.Arrays;
+import java.util.Collections;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.robolectric.RobolectricTestRunner;
 
 /** Unit tests for {@link DashUtil}. */
-@RunWith(RobolectricTestRunner.class)
+@RunWith(AndroidJUnit4.class)
 public final class DashUtilTest {
 
   @Test
   public void testLoadDrmInitDataFromManifest() throws Exception {
-    Period period = newPeriod(newAdaptationSets(newRepresentations(newDrmInitData())));
+    Period period = newPeriod(newAdaptationSet(newRepresentations(newDrmInitData())));
     DrmInitData drmInitData = DashUtil.loadDrmInitData(DummyDataSource.INSTANCE, period);
     assertThat(drmInitData).isEqualTo(newDrmInitData());
   }
 
   @Test
   public void testLoadDrmInitDataMissing() throws Exception {
-    Period period = newPeriod(newAdaptationSets(newRepresentations(null /* no init data */)));
+    Period period = newPeriod(newAdaptationSet(newRepresentations(null /* no init data */)));
     DrmInitData drmInitData = DashUtil.loadDrmInitData(DummyDataSource.INSTANCE, period);
     assertThat(drmInitData).isNull();
   }
 
   @Test
   public void testLoadDrmInitDataNoRepresentations() throws Exception {
-    Period period = newPeriod(newAdaptationSets(/* no representation */ ));
+    Period period = newPeriod(newAdaptationSet(/* no representation */ ));
     DrmInitData drmInitData = DashUtil.loadDrmInitData(DummyDataSource.INSTANCE, period);
     assertThat(drmInitData).isNull();
   }
@@ -68,8 +69,14 @@ public final class DashUtilTest {
     return new Period("", 0, Arrays.asList(adaptationSets));
   }
 
-  private static AdaptationSet newAdaptationSets(Representation... representations) {
-    return new AdaptationSet(0, C.TRACK_TYPE_VIDEO, Arrays.asList(representations), null, null);
+  private static AdaptationSet newAdaptationSet(Representation... representations) {
+    return new AdaptationSet(
+        /* id= */ 0,
+        C.TRACK_TYPE_VIDEO,
+        Arrays.asList(representations),
+        /* accessibilityDescriptors= */ Collections.emptyList(),
+        /* essentialProperties= */ Collections.emptyList(),
+        /* supplementalProperties= */ Collections.emptyList());
   }
 
   private static Representation newRepresentations(DrmInitData drmInitData) {
@@ -80,16 +87,18 @@ public final class DashUtilTest {
             MimeTypes.VIDEO_MP4,
             MimeTypes.VIDEO_H264,
             /* codecs= */ "",
+            /* metadata= */ null,
             Format.NO_VALUE,
             /* width= */ 1024,
             /* height= */ 768,
             Format.NO_VALUE,
             /* initializationData= */ null,
-            /* selectionFlags= */ 0);
+            /* selectionFlags= */ 0,
+            /* roleFlags= */ 0);
     if (drmInitData != null) {
       format = format.copyWithDrmInitData(drmInitData);
     }
-    return Representation.newInstance("", 0, format, "", new SingleSegmentBase());
+    return Representation.newInstance(0, format, "", new SingleSegmentBase());
   }
 
   private static DrmInitData newDrmInitData() {

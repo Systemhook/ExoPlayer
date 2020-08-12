@@ -15,7 +15,7 @@
  */
 package com.google.android.exoplayer2.source;
 
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.Player;
@@ -31,7 +31,7 @@ import java.util.Map;
  * Loops a {@link MediaSource} a specified number of times.
  *
  * <p>Note: To loop a {@link MediaSource} indefinitely, it is usually better to use {@link
- * ExoPlayer#setRepeatMode(int)}.
+ * ExoPlayer#setRepeatMode(int)} instead of this class.
  */
 public final class LoopingMediaSource extends CompositeMediaSource<Void> {
 
@@ -71,11 +71,8 @@ public final class LoopingMediaSource extends CompositeMediaSource<Void> {
   }
 
   @Override
-  public void prepareSourceInternal(
-      ExoPlayer player,
-      boolean isTopLevelSource,
-      @Nullable TransferListener mediaTransferListener) {
-    super.prepareSourceInternal(player, isTopLevelSource, mediaTransferListener);
+  protected void prepareSourceInternal(@Nullable TransferListener mediaTransferListener) {
+    super.prepareSourceInternal(mediaTransferListener);
     prepareChildSource(/* id= */ null, childSource);
   }
 
@@ -103,13 +100,12 @@ public final class LoopingMediaSource extends CompositeMediaSource<Void> {
   }
 
   @Override
-  protected void onChildSourceInfoRefreshed(
-      Void id, MediaSource mediaSource, Timeline timeline, @Nullable Object manifest) {
+  protected void onChildSourceInfoRefreshed(Void id, MediaSource mediaSource, Timeline timeline) {
     Timeline loopingTimeline =
         loopCount != Integer.MAX_VALUE
             ? new LoopingTimeline(timeline, loopCount)
             : new InfinitelyLoopingTimeline(timeline);
-    refreshSourceInfo(loopingTimeline, manifest);
+    refreshSourceInfo(loopingTimeline);
   }
 
   @Override
